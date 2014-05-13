@@ -1,1 +1,1 @@
-worker: python wpmphyte.py
+worker: python wpmphite.py

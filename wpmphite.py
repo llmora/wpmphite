@@ -11,7 +11,6 @@ __status__ = "Production"
 import urllib2
 import hashlib
 import time
-import ConfigParser
 import string
 import json
 from pprint import pprint
@@ -23,6 +22,7 @@ import struct
 import logging
 import calendar
 import httplib
+import os
 
 class App():
 
@@ -43,7 +43,6 @@ class App():
     url = base_url + service + version + method + '?' + parameters + '&apikey=' + apikey + '&sig=' + sig
 
     data = dict()
-    print("url: " + url)    
 
     try:
     
@@ -88,17 +87,14 @@ class App():
   
     logger.info("WPMPHITE " + __version__ + " started");
 
-    config = ConfigParser.RawConfigParser()
-    config.read('wpmphite.conf')
+    apikey = os.environ['wpm_apikey']
+    apisecret = os.environ['wpm_apisecret']
+    frequency = int(os.environ['wpm_frequency'])
+    carbon_host = os.environ['carbon_host']
+    carbon_port = int(os.environ['carbon_port'])
+    carbon_apikey = os.environ['carbon_apikey']
 
-    apikey = config.get('wpm','apikey')
-    apisecret = config.get('wpm','apisecret')
-    frequency = config.getint('wpm', 'frequency')
-    carbon_host = config.get('carbon', 'host')
-    carbon_port = config.getint('carbon', 'port')
-    carbon_apikey = config.get('carbon', 'apikey')
-
-    monitors = config.get('wpm', 'monitor')
+    monitors = os.environ['wpm_monitor']
     monitor_list = string.split(monitors, ',')
 
     if len(monitor_list) > 1:
@@ -124,7 +120,7 @@ class App():
             # Retrieve all samples for the past 2 * time
             logger.info("Retrieving data for monitor: " + active_monitor + "...")
             current_time = datetime.utcnow()
-            start_time = current_time - timedelta(seconds=20*frequency)
+            start_time = current_time - timedelta(seconds=20*int(frequency))
             param_end = current_time.isoformat()
             param_start = start_time.isoformat()
             param_offset = 0
@@ -160,7 +156,6 @@ class App():
                       data.append((carbon_apikey + '.' + 'wpm.stats.' + active_monitor.replace('.','_'), (data_time, sample_duration)))
 
                   self.carbon_send(carbon_host, carbon_port, data)
-                  logger.info(data)
                   logger.info("Sent " + str(wpm_samples['data']['count']) + " items")
               
         logger.info("Sleeping for " + str(frequency) + " seconds")

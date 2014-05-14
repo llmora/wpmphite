@@ -71,10 +71,13 @@ class App():
     payload = pickle.dumps(message)
     header = struct.pack("!L", len(payload))
     message = header + payload
-    sock = socket.socket()
-    sock.connect((host, port))
-    sock.sendall(message)
-    sock.close()
+    try:
+      sock = socket.socket()
+      sock.connect((host, port))
+      sock.sendall(message)
+      sock.close()
+    except:
+      logger.error("Exception sending log to carbon")
     
   def __init__(self):
     self.stdin_path = '/dev/null'

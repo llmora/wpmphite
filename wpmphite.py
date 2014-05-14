@@ -79,13 +79,6 @@ class App():
     except:
       logger.error("Exception sending log to carbon")
     
-  def __init__(self):
-    self.stdin_path = '/dev/null'
-    self.stdout_path = '/dev/tty'
-    self.stderr_path = '/dev/tty'
-    self.pidfile_path =  '/var/run/wpmphite/wpmphite.pid'
-    self.pidfile_timeout = 5
-
   def run(self):
   
     logger.info("WPMPHITE " + __version__ + " started");
@@ -168,7 +161,6 @@ class App():
 logger = logging.getLogger("wpmphite")
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-#handler = logging.FileHandler("/var/log/wpmphite/wpmphite.log")
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 logger.addHandler(handler)

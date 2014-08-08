@@ -78,9 +78,8 @@ class App():
       sock.close()
     except:
       logger.error("Exception sending log to carbon")
-    
+
   def run(self):
-  
     logger.info("WPMPHITE " + __version__ + " started");
 
     apikey = os.environ['wpm_apikey']
@@ -107,9 +106,19 @@ class App():
           for wpm_monitor in wpm_monitors['data']['items']:
             for monitor in monitor_list:
               monitor = monitor.strip()
+              monitor_components = monitor.split('|')
+              
+              logger.debug("Processing monitor configuration: " + monitor);
+              
+              if len(monitor_components) == 2:
+                monitor_id = monitor_components[0]
+                monitor_graphite_name = monitor_components[1]
 
-              if wpm_monitor is not None and ('name' in wpm_monitor) and (wpm_monitor['name'] == monitor):
-                active_monitors[monitor] = wpm_monitor['id']
+                logger.debug("Monitor ID: " + monitor_id + ", Graphite target: " + monitor_graphite_name)
+                logger.debug("Comparing monitor ID: " + wpm_monitor['id'])
+
+                if wpm_monitor is not None and ('id' in wpm_monitor) and (wpm_monitor['id'] == monitor_id.replace('-','')):
+                  active_monitors[monitor_graphite_name] = wpm_monitor['id']
 
           for active_monitor in active_monitors.keys():
 
@@ -149,11 +158,11 @@ class App():
                         sample_duration = 999999
                       
                       data_time = int(calendar.timegm(sample_time.timetuple()))
-                      data.append((carbon_apikey + '.' + 'wpm.stats.' + active_monitor.replace('.','_'), (data_time, sample_duration)))
+                      data.append((carbon_apikey + '.' + 'wpm.stats.' + active_monitor, (data_time, sample_duration)))
 
                   self.carbon_send(carbon_host, carbon_port, data)
-                  logger.info("Sent " + str(wpm_samples['data']['count']) + " items")
-              
+                  logger.info("Sent to '" + active_monitor + "' a total of " + str(wpm_samples['data']['count']) + " items")
+
         logger.info("Sleeping for " + str(frequency) + " seconds")
         time.sleep(frequency)
 
